@@ -68,18 +68,31 @@ src/
 
 ## Lokaal draaien
 
-1. **Vereisten:** Node 18+, PostgreSQL.
-2. **Env:** kopieer `.env.example` naar `.env` en vul `DATABASE_URL` +
-   `NEXTAUTH_SECRET` in.
-3. **Installeren & DB:**
-   ```bash
-   npm install
-   npm run db:push        # of: npm run db:migrate
-   npm run db:seed
-   npm run dev
-   ```
-4. **Inloggen als super-admin:** `admin@platform.nl` / `admin1234`
-   (aangemaakt door de seed — wijzig dit in productie).
+**Vereisten:** Node 18+ en Docker (voor de database). Geen Docker? Start dan zelf
+een PostgreSQL en zorg dat `DATABASE_URL` ernaar wijst — de rest is identiek.
+
+```bash
+# 1. Env klaarzetten (defaults werken met de meegeleverde docker-compose)
+cp .env.example .env
+
+# 2. PostgreSQL starten
+docker compose up -d          # draait postgres op localhost:5432
+
+# 3. Dependencies, schema en demo-data
+npm install
+npm run db:push               # schema naar de database
+npm run db:seed               # blocks, templates + super-admin
+
+# 4. Starten
+npm run dev                   # http://localhost:3000
+```
+
+**Inloggen als super-admin:** `admin@platform.nl` / `admin1234`
+(aangemaakt door de seed — wijzig dit in productie). Of maak via **Account
+aanmaken** je eigen site-owner.
+
+Stoppen kan met `docker compose down`; je data blijft bewaard in een Docker-volume
+(`docker compose down -v` wist 'm).
 
 ### Subdomeinen lokaal testen
 

@@ -1,0 +1,22 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: sitebuilder-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: cms_saas
+    ports:
+      # Host 5432 -> container 5432. Matches DATABASE_URL in .env.example.
+      - "5432:5432"
+    volumes:
+      - sitebuilder_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d cms_saas"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  sitebuilder_pgdata:
