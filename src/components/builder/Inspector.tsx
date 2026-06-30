@@ -1,14 +1,68 @@
 "use client";
 
+import { useState } from "react";
 import { BLOCK_MAP, type BlockInstance, type BlockField } from "@/blocks/definitions";
+import { MediaPickerModal } from "@/components/media/MediaPickerModal";
+
+function ImageField({
+  siteId,
+  value,
+  onChange,
+}: {
+  siteId: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const base = "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm";
+
+  return (
+    <div className="space-y-2">
+      {value && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={value} alt="" className="h-24 w-full rounded-lg border border-gray-200 object-cover" />
+      )}
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => setPickerOpen(true)}
+          className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-700"
+        >
+          Kies uit media
+        </button>
+        {value && (
+          <button
+            type="button"
+            onClick={() => onChange("")}
+            className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-50"
+          >
+            Verwijderen
+          </button>
+        )}
+      </div>
+      <input
+        type="url"
+        placeholder="of plak een URL"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={base}
+      />
+      {pickerOpen && (
+        <MediaPickerModal siteId={siteId} onSelect={onChange} onClose={() => setPickerOpen(false)} />
+      )}
+    </div>
+  );
+}
 
 function FieldInput({
   field,
   value,
+  siteId,
   onChange,
 }: {
   field: BlockField;
   value: string;
+  siteId: string;
   onChange: (v: string) => void;
 }) {
   const base = "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm";
@@ -43,15 +97,7 @@ function FieldInput({
         />
       );
     case "image":
-      return (
-        <input
-          type="url"
-          placeholder="https://… (media library volgt in fase 4)"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className={base}
-        />
-      );
+      return <ImageField siteId={siteId} value={value} onChange={onChange} />;
     default:
       return (
         <input
@@ -66,10 +112,12 @@ function FieldInput({
 
 export function Inspector({
   block,
+  siteId,
   onChange,
   onClose,
 }: {
   block: BlockInstance | null;
+  siteId: string;
   onChange: (key: string, value: string) => void;
   onClose: () => void;
 }) {
@@ -100,6 +148,7 @@ export function Inspector({
             <label className="mb-1 block text-xs font-medium text-gray-600">{field.label}</label>
             <FieldInput
               field={field}
+              siteId={siteId}
               value={typeof block.data[field.key] === "string" ? (block.data[field.key] as string) : ""}
               onChange={(v) => onChange(field.key, v)}
             />

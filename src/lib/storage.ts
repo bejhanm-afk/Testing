@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { mkdir, writeFile } from "fs/promises";
+import { mkdir, writeFile, rm } from "fs/promises";
 import path from "path";
 
 /**
@@ -15,9 +15,13 @@ export interface StoredFile {
 
 export interface StorageDriver {
   put(siteId: string, filename: string, body: Buffer, mimeType: string): Promise<StoredFile>;
+  del(key: string): Promise<void>;
 }
 
-const LOCAL_DIR = process.env.LOCAL_UPLOAD_DIR ?? "public/uploads";
+// Uploads live OUTSIDE /public on purpose: `next start` only serves public
+// files that existed at build time, so runtime uploads are streamed back via
+// the /uploads/[...path] route handler instead.
+const LOCAL_DIR = process.env.LOCAL_UPLOAD_DIR ?? "var/uploads";
 
 function safeName(filename: string): string {
   const ext = path.extname(filename).toLowerCase();
@@ -33,6 +37,12 @@ class LocalStorage implements StorageDriver {
     await writeFile(path.join(absDir, name), body);
     return { url: `/uploads/${key}`, key };
   }
+
+  async del(key: string): Promise<void> {
+    // `key` is "<siteId>/<filename>"; guard against path traversal.
+    const safe = key.replace(/\.\.+/g, "").replace(/^\/+/, "");
+    await rm(path.join(process.cwd(), LOCAL_DIR, safe), { force: true });
+  }
 }
 
 /**
@@ -42,6 +52,12 @@ class LocalStorage implements StorageDriver {
  */
 class S3Storage implements StorageDriver {
   async put(): Promise<StoredFile> {
+    throw new Error(
+      "S3 storage driver is not implemented yet. Set STORAGE_DRIVER=local."
+    );
+  }
+
+  async del(): Promise<void> {
     throw new Error(
       "S3 storage driver is not implemented yet. Set STORAGE_DRIVER=local."
     );

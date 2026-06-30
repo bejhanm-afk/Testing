@@ -28,7 +28,8 @@ yarn-error.log*
 /prisma/dev.db
 /prisma/*.db-journal
 
-# uploads (local storage)
+# uploads (local storage, served via /uploads route handler)
+/var/uploads
 /public/uploads/*
 !/public/uploads/.gitkeep
 

@@ -46,7 +46,7 @@ export default async function SiteSettingsPage({
       </Link>
       <h1 className="mb-1 text-2xl font-bold text-gray-900">{site.name}</h1>
       <p className="mb-4 text-sm text-gray-500">{site.subdomain}.{ROOT_DOMAIN}</p>
-      <SiteTabs siteId={site.id} active="settings" />
+      <SiteTabs siteId={site.id} active="settings" canManage />
       <SiteSettingsForm site={settings} />
     </div>
   );

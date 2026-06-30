@@ -13,8 +13,10 @@ export default async function SitePagesPage({
 }: {
   params: { siteId: string };
 }) {
+  let canManage = false;
   try {
-    await assertSiteAccess(params.siteId, "EDITOR");
+    const access = await assertSiteAccess(params.siteId, "EDITOR");
+    canManage = access.role === "OWNER";
   } catch (e) {
     if (e instanceof AuthError && e.status === 401) redirect(`/login?callbackUrl=/dashboard/${params.siteId}/pages`);
     redirect("/dashboard");
@@ -53,7 +55,7 @@ export default async function SitePagesPage({
         </div>
       </div>
 
-      <SiteTabs siteId={site.id} active="pages" />
+      <SiteTabs siteId={site.id} active="pages" canManage={canManage} />
       <PagesManager siteId={site.id} pages={pages} />
     </div>
   );

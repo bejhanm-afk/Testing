@@ -209,6 +209,7 @@ export function BuilderClient({
           <aside className="w-80 shrink-0 border-l border-gray-200 bg-white">
             <Inspector
               block={selectedBlock}
+              siteId={siteId}
               onChange={updateField}
               onClose={() => setSelectedId(null)}
             />
