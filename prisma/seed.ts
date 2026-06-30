@@ -41,23 +41,23 @@ async function main() {
   }> = [
     {
       name: "Zakelijk",
-      description: "Strakke bedrijfssite met hero, kenmerken en contact.",
+      description: "Strakke bedrijfssite met hero, kenmerken, cijfers en contact.",
       category: "Business",
       structure: {
         pages: [
-          { title: "Home", slug: "", content: page(["hero", "features", "text", "contactForm"]) },
-          { title: "Over ons", slug: "over-ons", content: page(["text", "features"]) },
+          { title: "Home", slug: "", content: page(["hero", "features", "stats", "testimonial", "cta"]) },
+          { title: "Over ons", slug: "over-ons", content: page(["text", "stats", "contactForm"]) },
         ],
       },
     },
     {
       name: "Portfolio",
-      description: "Toon je werk met grote beelden.",
+      description: "Toon je werk met grote beelden en een galerij.",
       category: "Creative",
       structure: {
         pages: [
-          { title: "Home", slug: "", content: page(["hero", "image", "text"]) },
-          { title: "Contact", slug: "contact", content: page(["contactForm"]) },
+          { title: "Home", slug: "", content: page(["hero", "gallery", "text", "testimonial"]) },
+          { title: "Contact", slug: "contact", content: page(["cta", "contactForm"]) },
         ],
       },
     },
@@ -66,7 +66,7 @@ async function main() {
       description: "Eén pagina, gericht op conversie.",
       category: "Marketing",
       structure: {
-        pages: [{ title: "Home", slug: "", content: page(["hero", "features", "button", "contactForm"]) }],
+        pages: [{ title: "Home", slug: "", content: page(["hero", "features", "stats", "testimonial", "cta", "contactForm"]) }],
       },
     },
   ];
