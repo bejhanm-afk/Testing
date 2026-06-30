@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/db";
 import { PageRenderer } from "@/blocks/Renderer";
+import { SiteShell, type NavItem } from "@/components/public/SiteShell";
 import type { BlockInstance } from "@/blocks/definitions";
 
 export const dynamic = "force-dynamic";
@@ -11,6 +12,8 @@ export const dynamic = "force-dynamic";
  * /site/<key>/<path>, where <key> is a subdomain or "domain:<host>".
  */
 
+type Seo = { title?: string; description?: string };
+
 function decodeSiteKey(raw: string) {
   const key = decodeURIComponent(raw);
   if (key.startsWith("domain:")) {
@@ -19,23 +22,31 @@ function decodeSiteKey(raw: string) {
   return { subdomain: key };
 }
 
-async function loadPage(siteKey: string, slugParts?: string[]) {
+async function loadSite(siteKey: string) {
   const where = decodeSiteKey(siteKey);
-  const site = await prisma.site.findFirst({
+  return prisma.site.findFirst({
     where: { ...where, status: "ACTIVE" },
-    include: {
-      pages: true,
-    },
+    include: { pages: { orderBy: { createdAt: "asc" } } },
   });
-  if (!site) return null;
+}
 
+function findPage(site: NonNullable<Awaited<ReturnType<typeof loadSite>>>, slugParts?: string[]) {
   const slug = (slugParts ?? []).join("/");
-  const page =
+  return (
     site.pages.find((p) => p.slug === slug && p.status === "PUBLISHED") ??
-    (slug === "" ? site.pages.find((p) => p.isHome && p.status === "PUBLISHED") : undefined);
+    (slug === "" ? site.pages.find((p) => p.isHome && p.status === "PUBLISHED") : undefined)
+  );
+}
 
-  if (!page) return null;
-  return { site, page };
+/** Build the nav from published pages: home first, then the rest by creation order. */
+function buildNav(site: NonNullable<Awaited<ReturnType<typeof loadSite>>>): NavItem[] {
+  return site.pages
+    .filter((p) => p.status === "PUBLISHED")
+    .sort((a, b) => Number(b.isHome) - Number(a.isHome))
+    .map((p) => ({
+      title: p.title,
+      href: p.isHome || p.slug === "" ? "/" : `/${p.slug}`,
+    }));
 }
 
 export async function generateMetadata({
@@ -43,12 +54,17 @@ export async function generateMetadata({
 }: {
   params: { key: string; slug?: string[] };
 }): Promise<Metadata> {
-  const result = await loadPage(params.key, params.slug);
-  if (!result) return { title: "Niet gevonden" };
-  const seo = (result.page.seo ?? {}) as { title?: string; description?: string };
+  const site = await loadSite(params.key);
+  if (!site) return { title: "Niet gevonden" };
+  const page = findPage(site, params.slug);
+  if (!page) return { title: `Niet gevonden — ${site.name}` };
+
+  const siteSeo = (site.seo ?? {}) as Seo;
+  const pageSeo = (page.seo ?? {}) as Seo;
+
   return {
-    title: seo.title ?? `${result.page.title} — ${result.site.name}`,
-    description: seo.description,
+    title: pageSeo.title || siteSeo.title || `${page.title} — ${site.name}`,
+    description: pageSeo.description || siteSeo.description || undefined,
   };
 }
 
@@ -57,16 +73,19 @@ export default async function PublicSitePage({
 }: {
   params: { key: string; slug?: string[] };
 }) {
-  const result = await loadPage(params.key, params.slug);
-  if (!result) notFound();
+  const site = await loadSite(params.key);
+  if (!site) notFound();
 
-  const { site, page } = result;
+  const page = findPage(site, params.slug);
+  if (!page) notFound();
+
   const theme = (site.theme ?? {}) as { primary?: string };
   const blocks = (page.content ?? []) as unknown as BlockInstance[];
+  const currentHref = page.isHome || page.slug === "" ? "/" : `/${page.slug}`;
 
   return (
-    <div className="min-h-screen bg-white">
+    <SiteShell siteName={site.name} nav={buildNav(site)} theme={theme} currentHref={currentHref}>
       <PageRenderer blocks={blocks} theme={theme} />
-    </div>
+    </SiteShell>
   );
 }

@@ -92,8 +92,8 @@ open bijvoorbeeld `http://mijnsite.localhost:3000`.
 - [x] **Fase 0** — Project-init, Prisma-schema, seed
 - [x] **Fase 1** — Authenticatie + multi-tenancy (sites aanmaken, rollen, publieke rendering-basis)
 - [x] **Fase 2** — Template/block-systeem + drag & drop page builder (palet, canvas, inspector, live preview, opslaan/publiceren)
-- [ ] **Fase 3** — Publieke SSR-rendering uitbouwen (custom domains, navigatie)
-- [ ] **Fase 4** — Site-owner dashboard (media library, settings, team)
+- [x] **Fase 3** — Publieke rendering uitgebouwd: site-navigatie + footer, SEO per pagina met site-brede defaults, en site-instellingen (custom domain, branding, default SEO)
+- [ ] **Fase 4** — Site-owner dashboard verder (media library, team/editors)
 - [ ] **Fase 5** — Admin paneel + Stripe-abonnementen + statistieken
 
 > Stripe is voorlopig gestubd (`STRIPE_ENABLED=false`); het `Subscription`-model

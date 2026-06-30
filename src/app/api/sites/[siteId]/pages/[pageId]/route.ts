@@ -12,11 +12,17 @@ const blockSchema = z.object({
   data: z.record(z.unknown()),
 });
 
+const seoSchema = z.object({
+  title: z.string().max(160).optional(),
+  description: z.string().max(320).optional(),
+});
+
 const updateSchema = z.object({
   title: z.string().min(1).max(160).optional(),
   slug: z.string().max(160).optional(),
   status: z.enum(["DRAFT", "PUBLISHED"]).optional(),
   content: z.array(blockSchema).optional(),
+  seo: seoSchema.optional(),
 });
 
 async function loadOwnedPage(siteId: string, pageId: string) {
@@ -56,6 +62,7 @@ export async function PATCH(
     const data: Prisma.PageUpdateInput = {};
     if (parsed.data.title !== undefined) data.title = parsed.data.title;
     if (parsed.data.content !== undefined) data.content = parsed.data.content as Prisma.InputJsonValue;
+    if (parsed.data.seo !== undefined) data.seo = parsed.data.seo as Prisma.InputJsonValue;
 
     if (parsed.data.slug !== undefined) {
       const slug = normalizeSlug(parsed.data.slug);

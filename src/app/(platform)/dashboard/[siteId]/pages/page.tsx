@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { assertSiteAccess, AuthError } from "@/lib/authz";
 import { ROOT_DOMAIN } from "@/lib/host";
 import { PagesManager, type PageRow } from "@/components/pages-manager";
+import { SiteTabs } from "@/components/site-tabs";
 
 export const dynamic = "force-dynamic";
 
@@ -52,6 +53,7 @@ export default async function SitePagesPage({
         </div>
       </div>
 
+      <SiteTabs siteId={site.id} active="pages" />
       <PagesManager siteId={site.id} pages={pages} />
     </div>
   );

@@ -28,12 +28,16 @@ export default async function BuilderPageRoute({
   if (!page) redirect(`/dashboard/${params.siteId}/pages`);
 
   const theme = (page.site.theme ?? {}) as { primary?: string };
+  const seo = (page.seo ?? {}) as { title?: string; description?: string };
   const builderPage: BuilderPage = {
     id: page.id,
     title: page.title,
     slug: page.slug,
     status: page.status,
+    isHome: page.isHome,
     content: (page.content ?? []) as unknown as BlockInstance[],
+    seoTitle: seo.title ?? "",
+    seoDescription: seo.description ?? "",
   };
 
   const publicUrl = `http://${page.site.subdomain}.${ROOT_DOMAIN}/${page.slug}`;

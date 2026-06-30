@@ -6,6 +6,7 @@ import { createBlockInstance, type BlockInstance } from "@/blocks/definitions";
 import { Palette } from "./Palette";
 import { Canvas } from "./Canvas";
 import { Inspector } from "./Inspector";
+import { PageSettingsModal } from "./PageSettingsModal";
 
 type Theme = { primary?: string };
 
@@ -14,7 +15,10 @@ export interface BuilderPage {
   title: string;
   slug: string;
   status: "DRAFT" | "PUBLISHED";
+  isHome: boolean;
   content: BlockInstance[];
+  seoTitle: string;
+  seoDescription: string;
 }
 
 export function BuilderClient({
@@ -35,6 +39,13 @@ export function BuilderClient({
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState(page.status);
   const [message, setMessage] = useState<string | null>(null);
+
+  // Page-level settings (title, slug, SEO).
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [title, setTitle] = useState(page.title);
+  const [slug, setSlug] = useState(page.slug);
+  const [seoTitle, setSeoTitle] = useState(page.seoTitle);
+  const [seoDescription, setSeoDescription] = useState(page.seoDescription);
 
   const selectedBlock = useMemo(
     () => blocks.find((b) => b.id === selectedId) ?? null,
@@ -93,7 +104,14 @@ export function BuilderClient({
       const res = await fetch(`/api/sites/${siteId}/pages/${page.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: blocks, status: nextStatus ?? status }),
+        body: JSON.stringify({
+          content: blocks,
+          status: nextStatus ?? status,
+          title,
+          // The homepage keeps its empty slug; other pages can be renamed.
+          ...(page.isHome ? {} : { slug }),
+          seo: { title: seoTitle, description: seoDescription },
+        }),
       });
       setSaving(false);
       if (!res.ok) {
@@ -105,7 +123,7 @@ export function BuilderClient({
       setDirty(false);
       setMessage(nextStatus === "PUBLISHED" ? "Gepubliceerd" : "Opgeslagen");
     },
-    [blocks, siteId, page.id, status]
+    [blocks, siteId, page.id, page.isHome, status, title, slug, seoTitle, seoDescription]
   );
 
   return (
@@ -116,7 +134,7 @@ export function BuilderClient({
           <Link href={`/dashboard/${siteId}/pages`} className="text-sm text-gray-500 hover:underline">
             ← Terug
           </Link>
-          <span className="font-semibold text-gray-900">{page.title}</span>
+          <span className="font-semibold text-gray-900">{title}</span>
           <span
             className={`rounded-full px-2 py-0.5 text-xs ${
               status === "PUBLISHED" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"
@@ -128,6 +146,12 @@ export function BuilderClient({
           {message && <span className="text-xs text-gray-500">{message}</span>}
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setSettingsOpen(true)}
+            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+          >
+            Pagina-instellingen
+          </button>
           <button
             onClick={() => setPreview((p) => !p)}
             className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
@@ -191,6 +215,24 @@ export function BuilderClient({
           </aside>
         )}
       </div>
+
+      {settingsOpen && (
+        <PageSettingsModal
+          isHome={page.isHome}
+          title={title}
+          slug={slug}
+          seoTitle={seoTitle}
+          seoDescription={seoDescription}
+          onChange={(patch) => {
+            if (patch.title !== undefined) setTitle(patch.title);
+            if (patch.slug !== undefined) setSlug(patch.slug);
+            if (patch.seoTitle !== undefined) setSeoTitle(patch.seoTitle);
+            if (patch.seoDescription !== undefined) setSeoDescription(patch.seoDescription);
+            setDirty(true);
+          }}
+          onClose={() => setSettingsOpen(false)}
+        />
+      )}
     </div>
   );
 }
