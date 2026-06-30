@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { assertSiteAccess, AuthError } from "@/lib/authz";
 import { normalizeSlug } from "@/lib/slug";
+import { planFor } from "@/lib/tiers";
 
 const createSchema = z.object({
   title: z.string().min(1).max(160),
@@ -35,6 +36,19 @@ export async function POST(
     const parsed = createSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json({ error: "Ongeldige invoer" }, { status: 400 });
+    }
+
+    // Enforce the subscription tier's page limit.
+    const [pageCount, subscription] = await Promise.all([
+      prisma.page.count({ where: { siteId: params.siteId } }),
+      prisma.subscription.findUnique({ where: { siteId: params.siteId }, select: { tier: true } }),
+    ]);
+    const plan = planFor(subscription?.tier);
+    if (pageCount >= plan.maxPages) {
+      return NextResponse.json(
+        { error: `Paginalimiet bereikt voor het ${plan.label}-abonnement (${plan.maxPages}). Upgrade je abonnement.` },
+        { status: 403 }
+      );
     }
 
     const slug = normalizeSlug(parsed.data.slug ?? parsed.data.title);

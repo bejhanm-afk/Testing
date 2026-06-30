@@ -6,13 +6,14 @@ export function SiteTabs({
   canManage = false,
 }: {
   siteId: string;
-  active: "pages" | "media" | "settings" | "team";
+  active: "pages" | "media" | "team" | "subscription" | "settings";
   canManage?: boolean;
 }) {
   const tabs = [
     { key: "pages", label: "Pagina's", href: `/dashboard/${siteId}/pages`, show: true },
     { key: "media", label: "Media", href: `/dashboard/${siteId}/media`, show: true },
     { key: "team", label: "Team", href: `/dashboard/${siteId}/team`, show: canManage },
+    { key: "subscription", label: "Abonnement", href: `/dashboard/${siteId}/subscription`, show: canManage },
     { key: "settings", label: "Instellingen", href: `/dashboard/${siteId}/settings`, show: canManage },
   ] as const;
 

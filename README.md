@@ -94,7 +94,7 @@ open bijvoorbeeld `http://mijnsite.localhost:3000`.
 - [x] **Fase 2** — Template/block-systeem + drag & drop page builder (palet, canvas, inspector, live preview, opslaan/publiceren)
 - [x] **Fase 3** — Publieke rendering uitgebouwd: site-navigatie + footer, SEO per pagina met site-brede defaults, en site-instellingen (custom domain, branding, default SEO)
 - [x] **Fase 4** — Media library met uploads + image-picker in de builder, en team/editors-beheer (leden toevoegen, rollen, verwijderen)
-- [ ] **Fase 5** — Admin paneel + Stripe-abonnementen + statistieken
+- [x] **Fase 5** — Super-admin platformpaneel (sites, gebruikers, templates, statistieken), afgedwongen tier-limieten en een mock-abonnement (Stripe gestubd, geen betaal-calls)
 
 > Stripe is voorlopig gestubd (`STRIPE_ENABLED=false`); het `Subscription`-model
 > en de tiers staan al in de database.
