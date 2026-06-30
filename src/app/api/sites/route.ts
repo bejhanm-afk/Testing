@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { requireUser, AuthError, listAccessibleSites } from "@/lib/authz";
 import { normalizeSubdomain, isReservedSubdomain } from "@/lib/host";
+import { normalizeSlug } from "@/lib/slug";
 import type { Prisma } from "@prisma/client";
 
 const createSchema = z.object({
@@ -77,13 +78,4 @@ export async function POST(req: Request) {
     if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status });
     throw e;
   }
-}
-
-function normalizeSlug(slug: string): string {
-  return slug
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9-]/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
 }

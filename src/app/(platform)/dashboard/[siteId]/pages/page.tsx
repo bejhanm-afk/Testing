@@ -2,7 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { assertSiteAccess, AuthError } from "@/lib/authz";
-import { ROOT_DOMAIN } from "@/lib/tenant";
+import { ROOT_DOMAIN } from "@/lib/host";
+import { PagesManager, type PageRow } from "@/components/pages-manager";
 
 export const dynamic = "force-dynamic";
 
@@ -24,9 +25,17 @@ export default async function SitePagesPage({
   });
   if (!site) redirect("/dashboard");
 
+  const pages: PageRow[] = site.pages.map((p) => ({
+    id: p.id,
+    title: p.title,
+    slug: p.slug,
+    status: p.status,
+    isHome: p.isHome,
+  }));
+
   return (
     <div>
-      <div className="mb-2 flex items-center justify-between">
+      <div className="mb-6 flex items-center justify-between">
         <div>
           <Link href="/dashboard" className="text-sm text-gray-500 hover:underline">
             ← Alle sites
@@ -34,41 +43,16 @@ export default async function SitePagesPage({
           <h1 className="text-2xl font-bold text-gray-900">{site.name}</h1>
           <a
             href={`http://${site.subdomain}.${ROOT_DOMAIN}`}
+            target="_blank"
+            rel="noreferrer"
             className="text-sm text-brand-600 hover:underline"
           >
-            {site.subdomain}.{ROOT_DOMAIN}
+            {site.subdomain}.{ROOT_DOMAIN} ↗
           </a>
         </div>
       </div>
 
-      <div className="mt-6 overflow-hidden rounded-xl border border-gray-200 bg-white">
-        <div className="border-b border-gray-100 px-5 py-3 text-sm font-medium text-gray-500">
-          Pagina&apos;s
-        </div>
-        <ul className="divide-y divide-gray-100">
-          {site.pages.map((p) => (
-            <li key={p.id} className="flex items-center justify-between px-5 py-3">
-              <div>
-                <span className="font-medium text-gray-900">{p.title}</span>
-                <span className="ml-2 text-sm text-gray-400">/{p.slug}</span>
-                {p.isHome && (
-                  <span className="ml-2 rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-500">home</span>
-                )}
-              </div>
-              <span className="flex items-center gap-3">
-                <span
-                  className={`rounded-full px-2 py-0.5 text-xs ${
-                    p.status === "PUBLISHED" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"
-                  }`}
-                >
-                  {p.status}
-                </span>
-                <span className="text-sm text-gray-400">Builder volgt (fase 2)</span>
-              </span>
-            </li>
-          ))}
-        </ul>
-      </div>
+      <PagesManager siteId={site.id} pages={pages} />
     </div>
   );
 }
